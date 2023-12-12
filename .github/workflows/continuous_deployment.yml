@@ -53,11 +53,11 @@ jobs:
           changelogger notes $VERSION --no-pretty >> $GITHUB_ENV
           echo ${DELIMITER} >> $GITHUB_ENV
 
-      - name: Exclude files
+      - name: Create Archive
         run: |
           wrapper_dir="magento2-klaviyo"
           rsync -rc --exclude-from=".distignore" "$GITHUB_WORKSPACE/" $wrapper_dir/ --delete --delete-excluded
-          ls -al $wrapper_dir
+          zip -r klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip ./$wrapper_dir
 
   #    - name: Create Archive
   #      uses: thedoctor0/zip-release@0.7.1
@@ -66,10 +66,10 @@ jobs:
   #        filename: "klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip"
   #        exclusions: '*.git* '
   #
-  #    - name: Temp - upload zip for testing
-  #      uses: actions/upload-artifact@v3
-  #      with:
-  #        path: "klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip"
+      - name: Temp - upload zip for testing
+        uses: actions/upload-artifact@v3
+        with:
+          path: "klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip"
   #    - name: Create GitHub Tag & Release
   #      uses: ncipollo/release-action@v1
   #      with:
