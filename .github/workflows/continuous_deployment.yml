@@ -32,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: determine-if-deploy
     #    if: needs.determine-if-deploy.outputs.deploy == 'true'
+    env:
+      ZIP_FILE_NAME: klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python 3.11
@@ -57,7 +59,7 @@ jobs:
         run: |
           wrapper_dir="magento2-klaviyo"
           rsync -rc --exclude-from=".distignore" "$GITHUB_WORKSPACE/" $wrapper_dir/ --delete --delete-excluded
-          zip -r klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip ./$wrapper_dir
+          zip -r ${{ env.ZIP_FILE_NAME }} ./$wrapper_dir
 
   #    - name: Create Archive
   #      uses: thedoctor0/zip-release@0.7.1
@@ -69,15 +71,17 @@ jobs:
       - name: Temp - upload zip for testing
         uses: actions/upload-artifact@v3
         with:
-          path: "klaviyo_reclaim-${{ needs.determine-if-deploy.outputs.version }}.zip"
-  #    - name: Create GitHub Tag & Release
-  #      uses: ncipollo/release-action@v1
-  #      with:
-  #        tag: ${{ needs.determine-if-deploy.outputs.version }}
-  #        commit: ${{ github.sha }}
-  #        name: Release ${{ needs.determine-if-deploy.outputs.version }}
-  #        body: ${{ env.content }}
-  #        prerelease: true
+          path: ${{ env.ZIP_FILE_NAME }}
+
+      - name: Create GitHub Tag & Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.determine-if-deploy.outputs.version }}
+          commit: ${{ github.sha }}
+          name: Release ${{ needs.determine-if-deploy.outputs.version }}
+          body: ${{ env.content }}
+          prerelease: true
+          artifacts: ${{ env.ZIP_FILE_NAME }}
 
   #    - name: Send PagerDuty alert on failure
   #      if: ${{ failure() }}
